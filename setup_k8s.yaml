@@ -1,5 +1,8 @@
 ### You need to use Ansible version 2.5 or later
 ### The target OS is Ubuntu 16.04.
+## 2018/10/07
+# Ansible Update loop of apt
+# Notice for ISSUE kubernetes-cni
 ---
 - hosts: k8s
   gather_facts: no
@@ -18,8 +21,9 @@
       apt: name=docker.io state=latest update_cache=yes
 
     - name: install other packages
-      apt: name={{ item }} state=latest
-      with_items:
+      apt: name="{{ packages }}" state=latest
+      vars:
+        packages:
         - apt-transport-https
         - ca-certificates
         - curl
@@ -36,9 +40,17 @@
         filename: /etc/apt/sources.list.d/kubernetes.list
         state: present
 
+# kubernetes-cni 0.6.0 
+# https://github.com/kubernetes/kubernetes/issues/69489
+# cat /etc/apt/preferences.d/k8s.pref
+# Package: kubernetes-cni
+# Pin: version 0.6.0-00*
+# Pin-Priority: 900
+
     - name: install kubeadm packages
-      apt: name={{ item }} state=latest update_cache=yes
-      with_items:
+      apt: name="{{ packages }}" state=latest update_cache=yes
+      vars:
+        packages:
         - kubelet
         - kubeadm
         - kubectl
@@ -70,6 +82,7 @@
               source <(kubectl completion bash)
               source /opt/kubectx/completion/kubens.bash
               source /opt/kubectx/completion/kubectx.bash
-      when: inventory_hostname == '192.168.0.60'
+      when: inventory_hostname == '192.168.0.60' or 'master-1.tk.net'
+
 
 

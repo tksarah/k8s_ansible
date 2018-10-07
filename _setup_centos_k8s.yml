@@ -1,0 +1,73 @@
+### You need to use Ansible version 2.5 or later
+### The target OS is Ubuntu CentOS7
+---
+- hosts: k8s
+  gather_facts: no
+
+  become: true
+  become_user: root
+
+  remote_user: centos
+  
+  tasks:
+   
+    - name: set timezone
+      timezone: name=Asia/Tokyo
+
+    - name: install docker
+      yum: name=docker state=latest update_cache=yes
+
+    - name: disable SELinux
+      selinux: state=disabled policy=targeted
+
+    - name: install other packages
+      apt: name={{ item }} state=latest
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+
+    - name: add repository 
+      yum_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        filename: /etc/apt/sources.list.d/kubernetes.list
+        state: present
+
+    - name: install kubeadm packages
+      yum: name={{ item }} state=latest update_cache=yes
+      with_items:
+        - kubelet
+        - kubeadm
+        - kubectl
+    
+    - block: 
+        - name: copy shell
+          copy: src=./kube_set.sh  dest=/home/ubuntu/kube_set.sh owner=ubuntu group=ubuntu mode=755
+
+        - name: optional install kubens/kubectx
+          git: 
+            repo: https://github.com/ahmetb/kubectx.git
+            dest: /opt/kubectx
+
+        - name: set slink kubens/kubectx
+          file:
+            src: '/opt/kubectx/{{ item.src }}'
+            dest: '/usr/local/bin/{{ item.dest }}'
+            state: link
+          with_items:
+            - { src: 'kubectx', dest: 'kubectx' }
+            - { src: 'kubens', dest: 'kubens' }
+
+        - name: update .bashrc
+          blockinfile:
+            path: /home/ubuntu/.bashrc
+            marker_begin: "BEGIN Auto Completion for k8s by Ansible"
+            marker_end: "END Auto Completion for k8s by Ansible"
+            block: |
+              source <(kubectl completion bash)
+              source /opt/kubectx/completion/kubens.bash
+              source /opt/kubectx/completion/kubectx.bash
+      when: inventory_hostname == '192.168.0.60'
+
+

@@ -1,6 +1,7 @@
 [k8s]
 
-192.168.0.60 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
-192.168.0.61 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
-192.168.0.62 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
+master-1.tk.net ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
+node-1.tk.net ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
+;192.168.0.61 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
+;192.168.0.62 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
 ;192.168.0.63 ansible_user=ubuntu ansible_ssh_private_key_file=./kurakey ansible_python_interpreter=/usr/bin/python3
