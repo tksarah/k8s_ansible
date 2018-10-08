@@ -82,7 +82,6 @@
               source <(kubectl completion bash)
               source /opt/kubectx/completion/kubens.bash
               source /opt/kubectx/completion/kubectx.bash
-      when: inventory_hostname == '192.168.0.60' or 'master-1.tk.net'
-
+      when: inventory_hostname == '192.168.0.78'
 
 
