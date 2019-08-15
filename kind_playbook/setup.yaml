@@ -11,7 +11,6 @@
   remote_user: ubuntu
   
   tasks:
-   
     - name: set timezone
       timezone: name=Asia/Tokyo
 
@@ -24,59 +23,25 @@
         - curl
         - software-properties-common
 
-    - name: add an apt key for kubeadm
-      apt_key:
-        state: present 
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    # Add User
 
-    - name: add repository 
-      apt_repository:
-        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
-        filename: /etc/apt/sources.list.d/kubernetes.list
-        state: present
+    # Setup kind
+    # https://kind.sigs.k8s.io/
+    - name: Download go 
+      get_url:
+        url: https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz
+        dest: /tmp/go.tar.gz
 
-# kubernetes-cni 0.6.0 
-# https://github.com/kubernetes/kubernetes/issues/69489
-# cat /etc/apt/preferences.d/k8s.pref
-# Package: kubernetes-cni
-# Pin: version 0.6.0-00*
-# Pin-Priority: 900
+    - name: Install go 
+      unarchive:
+        src: /tmp/go.tar.gz
+        dest: /usr/local/bin
+        remote_src: True
 
-    - name: install kubeadm packages
-      apt: name="{{ packages }}" state=latest update_cache=yes
-      vars:
-        packages:
-        - kubelet
-        - kubeadm
-        - kubectl
-    
-    - block: 
-        - name: copy shell
-          copy: src=./kube_set.sh  dest=/home/ubuntu/kube_set.sh owner=ubuntu group=ubuntu mode=755
+    - name: Install kind
+      command: /usr/local/bin/go/bin/go get -u sigs.k8s.io/kind
 
-        - name: optional install kubens/kubectx
-          git: 
-            repo: https://github.com/ahmetb/kubectx.git
-            dest: /opt/kubectx
-
-        - name: set slink kubens/kubectx
-          file:
-            src: '/opt/kubectx/{{ item.src }}'
-            dest: '/usr/local/bin/{{ item.dest }}'
-            state: link
-          with_items:
-            - { src: 'kubectx', dest: 'kubectx' }
-            - { src: 'kubens', dest: 'kubens' }
-
-        - name: update .bashrc
-          blockinfile:
-            path: /home/ubuntu/.bashrc
-            marker_begin: "BEGIN Auto Completion for k8s by Ansible"
-            marker_end: "END Auto Completion for k8s by Ansible"
-            block: |
-              source <(kubectl completion bash)
-              source /opt/kubectx/completion/kubens.bash
-              source /opt/kubectx/completion/kubectx.bash
-      when: inventory_hostname == '192.168.0.78'
-
-
+    # Create Cluster
+    # Set kind env in .bashrc
+    # Output "kind get clusters"
+    # Output "kubectl cluster-info"
